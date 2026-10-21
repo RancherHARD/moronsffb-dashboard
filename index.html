@@ -1,1 +1,424 @@
-PLACEHOLDER_WILL_BE_REPLACED
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>Morons of the Gridiron — Dashboard</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-hover: #273449;
+    --accent: #3b82f6;
+    --accent-2: #8b5cf6;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #334155;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --orange: #f97316;
+    --shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+    line-height: 1.5;
+    padding: 1rem;
+    padding-bottom: 3rem;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 1.25rem; }
+  header h1 {
+    margin: 0 0 0.25rem;
+    font-size: 1.75rem;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  header p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+  .badge { display: inline-block; background: var(--accent); color: white; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.75rem; margin-left: 0.5rem; }
+  .tabs { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; margin-bottom: 1.25rem; scrollbar-width: thin; }
+  .tab { flex: 0 0 auto; padding: 0.65rem 1.25rem; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 999px; cursor: pointer; font-size: 0.9rem; white-space: nowrap; transition: all 0.2s; }
+  .tab:hover { background: var(--card-hover); }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+  .section { display: none; }
+  .section.active { display: block; animation: fadeIn 0.25s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 1rem; padding: 1.25rem; box-shadow: var(--shadow); }
+  .card h2, .card h3 { margin: 0 0 0.75rem; font-size: 1.15rem; }
+  .stat { font-size: 1.75rem; font-weight: 700; }
+  .stat-label { color: var(--muted); font-size: 0.85rem; }
+  .stat-row { display: flex; justify-content: space-between; align-items: baseline; margin: 0.4rem 0; }
+  .search-box { width: 100%; padding: 0.65rem 1rem; border-radius: 0.5rem; border: 1px solid var(--border); background: #0f172a; color: var(--text); margin-bottom: 1rem; font-size: 1rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { padding: 0.7rem 0.5rem; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; cursor: pointer; user-select: none; }
+  th:hover { color: var(--text); }
+  tr:hover td { background: rgba(255,255,255,0.03); }
+  .highlight { background: rgba(59, 130, 246, 0.15); }
+  .bubble { color: var(--yellow); }
+  .out { color: var(--red); font-weight: 600; }
+  .bye { color: var(--orange); }
+  .matchup-box { display: flex; justify-content: space-around; align-items: center; text-align: center; padding: 1rem 0; }
+  .team-score { font-size: 1.5rem; font-weight: 700; }
+  .vs { color: var(--muted); font-size: 0.9rem; }
+  .note { color: var(--muted); font-size: 0.85rem; margin-top: 0.75rem; }
+  .pill { display: inline-block; background: #334155; padding: 0.2rem 0.55rem; border-radius: 999px; font-size: 0.75rem; margin-right: 0.35rem; margin-bottom: 0.35rem; }
+  .pill.out { background: rgba(239,68,68,0.2); color: var(--red); }
+  .pill.bye { background: rgba(249,115,22,0.2); color: var(--orange); }
+  .pill.ok { background: rgba(16,185,129,0.2); color: var(--green); }
+  .alert { background: rgba(239,68,68,0.1); border-left: 4px solid var(--red); padding: 0.75rem 1rem; border-radius: 0.5rem; margin: 0.75rem 0; }
+  .priority { background: rgba(59,130,246,0.1); border-left: 4px solid var(--accent); padding: 0.75rem 1rem; border-radius: 0.5rem; margin: 0.75rem 0; }
+  .bar-container { background: #334155; border-radius: 999px; height: 8px; margin: 0.35rem 0 0.75rem; overflow: hidden; }
+  .bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 999px; }
+  footer { text-align: center; color: var(--muted); font-size: 0.8rem; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  ul { margin: 0.5rem 0; padding-left: 1.25rem; }
+  li { margin: 0.35rem 0; }
+  @media (max-width: 640px) {
+    body { padding: 0.75rem; }
+    header h1 { font-size: 1.4rem; }
+    .tab { padding: 0.55rem 1rem; font-size: 0.85rem; }
+    .card { padding: 1rem; }
+    table { font-size: 0.8rem; display: block; overflow-x: auto; white-space: nowrap; }
+    th, td { padding: 0.55rem 0.4rem; }
+    .matchup-box { flex-direction: column; gap: 0.75rem; }
+    .stat { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Morons of the Gridiron <span class="badge">XVIII</span></h1>
+    <p>Family League Dashboard · Week 7 · Updated Oct 21, 2026 · Data from screenshots + memory</p>
+  </header>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tab="overview">Overview</button>
+    <button class="tab" data-tab="standings">Standings</button>
+    <button class="tab" data-tab="matchup">This Week</button>
+    <button class="tab" data-tab="team">LittleMacc</button>
+    <button class="tab" data-tab="alerts">Alerts</button>
+    <button class="tab" data-tab="keepers">Keepers</button>
+    <button class="tab" data-tab="settings">Rules</button>
+  </div>
+
+  <!-- Overview -->
+  <div class="section active" id="overview">
+    <div class="grid">
+      <div class="card">
+        <h3>Your Record</h3>
+        <div class="stat">3-3</div>
+        <div class="stat-label">4th place · 797.34 PF</div>
+        <div class="stat-row"><span>FAAB left</span><strong>$69</strong></div>
+        <div class="bar-container"><div class="bar" style="width: 69%;"></div></div>
+        <div class="stat-row"><span>Adds used</span><strong>7 / 30</strong></div>
+        <div class="bar-container"><div class="bar" style="width: 23%;"></div></div>
+      </div>
+      <div class="card">
+        <h3>Week 7 Matchup</h3>
+        <div class="matchup-box">
+          <div>
+            <div class="team-score">132.53</div>
+            <div>LittleMacc</div>
+          </div>
+          <div class="vs">Yahoo proj</div>
+          <div>
+            <div class="team-score">83.41</div>
+            <div>WALL-E BALLS</div>
+          </div>
+        </div>
+        <div class="note">vs cousin Kimberly · 3-3 (8th)</div>
+      </div>
+      <div class="card">
+        <h3>Playoff Picture</h3>
+        <div class="stat">Top 8</div>
+        <div class="stat-label">8 teams make Weeks 15–17</div>
+        <div class="note">You are safely in 4th. Bubble is 8th–9th right now.</div>
+      </div>
+    </div>
+    <div class="priority">
+      <strong>This week priorities</strong>
+      <ul>
+        <li>Stream a kicker (Dicker on bye) — Boswell or Myers preferred</li>
+        <li>Packers DST is low vs high-scoring Lions — consider streaming if available</li>
+        <li>Jeremiyah Love is Out (ankle) — do not start</li>
+        <li>Alec Pierce still not ready (heel rehab)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Standings -->
+  <div class="section" id="standings">
+    <div class="card">
+      <h2>Standings after Week 6</h2>
+      <input type="text" class="search-box" id="standingsSearch" placeholder="Search teams...">
+      <table id="standingsTable">
+        <thead>
+          <tr>
+            <th data-sort="rank">Rank</th>
+            <th data-sort="team">Team</th>
+            <th data-sort="record">W-L</th>
+            <th data-sort="pf">PF</th>
+            <th data-sort="faab">FAAB</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-team="Belichekyoself"><td>1</td><td>Belichekyoself</td><td>5-1</td><td>790.98</td><td>$55</td></tr>
+          <tr data-team="Rat Finks"><td>2</td><td>Rat Finks</td><td>5-1</td><td>710.26</td><td>$62</td></tr>
+          <tr data-team="Laces Out"><td>3</td><td>Laces Out</td><td>4-2</td><td>791.14</td><td>$53</td></tr>
+          <tr class="highlight" data-team="LittleMacc"><td>4</td><td>LittleMacc</td><td>3-3</td><td>797.34</td><td>$69</td></tr>
+          <tr data-team="Argonauts"><td>5</td><td>Argonauts</td><td>3-3</td><td>737.82</td><td>$92</td></tr>
+          <tr data-team="Scrub Squad"><td>6</td><td>Scrub Squad</td><td>3-3</td><td>728.04</td><td>$73</td></tr>
+          <tr data-team="Driving School"><td>7</td><td>Driving School</td><td>3-3</td><td>702.46</td><td>$35</td></tr>
+          <tr class="bubble" data-team="Wall-E Balls"><td>8</td><td>Wall-E Balls</td><td>3-3</td><td>666.78</td><td>$87</td></tr>
+          <tr class="bubble" data-team="Octagons"><td>9</td><td>Octagons</td><td>3-3</td><td>656.02</td><td>$83</td></tr>
+          <tr data-team="Lifestyle"><td>10</td><td>Lifestyle</td><td>2-4</td><td>670.90</td><td>$100</td></tr>
+          <tr data-team="Studs"><td>11</td><td>Studs</td><td>1-5</td><td>611.96</td><td>$100</td></tr>
+          <tr data-team="Royal Flushers"><td>12</td><td>Royal Flushers</td><td>1-5</td><td>599.56</td><td>$44</td></tr>
+        </tbody>
+      </table>
+      <div class="note">Click any column header to sort. Your team is highlighted. Bubble teams (8th–9th) are in yellow. Playoff cut is top 8.</div>
+    </div>
+  </div>
+
+  <!-- Matchup -->
+  <div class="section" id="matchup">
+    <div class="card">
+      <h2>Week 7 vs WALL-E BALLS / Kimberly</h2>
+      <div class="matchup-box">
+        <div>
+          <div class="team-score">132.53</div>
+          <div><strong>LittleMacc</strong><br>3-3 · 4th</div>
+        </div>
+        <div class="vs">Yahoo proj</div>
+        <div>
+          <div class="team-score">83.41</div>
+          <div><strong>WALL-E BALLS</strong><br>3-3 · 8th</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Full Week 7 Matchups</h2>
+      <table>
+        <thead><tr><th>Team</th><th>Proj</th><th></th><th>Proj</th><th>Team</th></tr></thead>
+        <tbody>
+          <tr class="highlight"><td>LittleMacc (4th)</td><td>132.53</td><td>vs</td><td>83.41</td><td>Wall-E Balls (8th)</td></tr>
+          <tr><td>Royal Flushers (12th)</td><td>109.78</td><td>vs</td><td>91.25</td><td>Intramural Studs (11th)</td></tr>
+          <tr><td>Austins Argonauts (5th)</td><td>115.90</td><td>vs</td><td>102.28</td><td>Rat Finks (2nd)</td></tr>
+          <tr><td>It's a Lifestyle (10th)</td><td>71.31</td><td>vs</td><td>115.99</td><td>Octagons (9th)</td></tr>
+          <tr><td>Laces Out (3rd)</td><td>118.76</td><td>vs</td><td>133.17</td><td>Belichekyoself (1st)</td></tr>
+          <tr><td>Scrub Squad (6th)</td><td>110.08</td><td>vs</td><td>128.61</td><td>Driving School (7th)</td></tr>
+        </tbody>
+      </table>
+      <div class="note">Projections from Yahoo screenshot Oct 21. Games not started yet.</div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Your proposed starters</h3>
+        <p><span class="pill ok">Maye</span> <span class="pill ok">Gibbs</span> <span class="pill ok">Warren</span> <span class="pill ok">London</span> <span class="pill ok">Pickens</span> <span class="pill ok">LaPorta</span> <span class="pill ok">Worthy</span> <span class="pill ok">Aaron Jones</span> <span class="pill bye">Dicker (bye)</span> <span class="pill">Packers DST</span></p>
+        <div class="note">Jordan Love on bench. Henry / Allen / Dameon Pierce on bench. Love is Out.</div>
+      </div>
+      <div class="card">
+        <h3>Kimberly (approx)</h3>
+        <p>Purdy · Cook (bye) · Pollard · Parker Washington (bye) · Michael Wilson · Likely · Wan'Dale · Coker · Loop · Bills DST (bye)</p>
+        <div class="note">Caleb Williams on bench. A.J. Brown IR/Q. Multiple byes hurt her this week.</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Key notes</h3>
+      <ul>
+        <li><strong>Byes this week:</strong> BUF (Shakir, James Cook), JAC, LAC (Dicker + Chargers DST), WAS</li>
+        <li>Stream a kicker — only you and Rat Finks confirmed needing one</li>
+        <li>Packers DST projected low against Lions</li>
+        <li>Jeremiyah Love Out (ankle)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Team -->
+  <div class="section" id="team">
+    <div class="grid">
+      <div class="card">
+        <h3>LittleMacc Snapshot</h3>
+        <div class="stat-row"><span>Record</span><strong>3-3</strong></div>
+        <div class="stat-row"><span>Points For</span><strong>797.34</strong></div>
+        <div class="stat-row"><span>Rank</span><strong>4th</strong></div>
+        <div class="stat-row"><span>FAAB remaining</span><strong>$69</strong></div>
+        <div class="stat-row"><span>Season adds</span><strong>7 of 30</strong></div>
+      </div>
+      <div class="card">
+        <h3>Core roster status</h3>
+        <p><span class="pill ok">Drake Maye</span> <span class="pill ok">Jordan Love</span></p>
+        <p><span class="pill ok">Jahmyr Gibbs</span> <span class="pill out">Jeremiyah Love (Out)</span> <span class="pill ok">Jaylen Warren</span> <span class="pill ok">Aaron Jones</span></p>
+        <p><span class="pill ok">Drake London</span> <span class="pill ok">George Pickens</span> <span class="pill">Khalil Shakir</span> <span class="pill ok">Xavier Worthy</span> <span class="pill">Keenan Allen</span></p>
+        <p><span class="pill ok">Sam LaPorta</span> <span class="pill ok">Hunter Henry</span></p>
+        <p><span class="pill bye">Cameron Dicker (bye W7)</span></p>
+        <p><span class="pill">Packers DST</span> <span class="pill">Jaguars DST</span></p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Recent activity</h3>
+      <ul>
+        <li>Week 6: Lost 122.20–144.08 to Scrub Squad / Kyle → 3-3</li>
+        <li>Waivers: Won Xavier Worthy $19 (dropped Tre' Harris). FAAB now ~$69</li>
+        <li>Week 4: Beat cousin Brent / Octagons</li>
+        <li>Earlier: Keenan Allen $11, Sione Vaki $1</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div class="section" id="alerts">
+    <div class="alert">
+      <strong>Jeremiyah Love — Out</strong><br>
+      Ankle issue. Do not start Week 7. Status TBD going forward.
+    </div>
+    <div class="alert">
+      <strong>Alec Pierce — Not ready</strong><br>
+      Still rehabbing surgically repaired left heel. Not a Week 7 option. Estimated return around Nov 1 or later.
+    </div>
+    <div class="priority">
+      <strong>Kicker needed</strong><br>
+      Dicker is on bye. Stream Boswell (PIT) or Myers (SEA) if available. Only confirmed kicker-needy teams: you and Rat Finks.
+    </div>
+    <div class="priority">
+      <strong>DST note</strong><br>
+      Packers DST projected low (~4–5 pts) vs high-powered Lions. Streaming alternatives recommended if available.
+    </div>
+    <div class="card">
+      <h3>Other known items</h3>
+      <ul>
+        <li>Jayden Reed — season-ending neck surgery (earlier)</li>
+        <li>Jayden Higgins — IR, torn ACL</li>
+        <li>Trade deadline: November 28, 2026</li>
+        <li>Waivers process ~4:00 AM ET Wednesday</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Keepers -->
+  <div class="section" id="keepers">
+    <div class="card">
+      <h2>2027 Keeper Watch</h2>
+      <p>One-year keepers only. Anyone kept in 2026 is ineligible in 2027. All 1st-round picks return to the draft.</p>
+      <div style="margin-top:1rem;">
+        <span class="pill">Love → 2nd</span>
+        <span class="pill">Warren → 4th</span>
+        <span class="pill">Pierce → 5th</span>
+        <span class="pill">LaPorta → 6th</span>
+        <span class="pill">Reed → 7th</span>
+        <span class="pill">Jones → 8th</span>
+        <span class="pill">Shakir → 9th</span>
+        <span class="pill">Waiver add → 10th</span>
+      </div>
+      <div class="note">Working pair idea: Love (2nd) + a midseason waiver star (10th). Gibbs cannot be kept. Pickens and Maye were 2026 keepers and return to the draft.</div>
+    </div>
+    <div class="card">
+      <h3>Rules reminder</h3>
+      <p>Keep 2 per year. Cost is one round earlier than this year’s pick. Waiver / undrafted players cost a 10th. If two keepers both cost a 10th, ask the commissioner which pick burns second.</p>
+    </div>
+  </div>
+
+  <!-- Settings / Rules -->
+  <div class="section" id="settings">
+    <div class="card">
+      <h2>League Rules Snapshot</h2>
+      <div class="stat-row"><span>Format</span><strong>12-team H2H · Half-PPR</strong></div>
+      <div class="stat-row"><span>Passing TDs</span><strong>6 points</strong></div>
+      <div class="stat-row"><span>Roster</span><strong>QB, 2WR, 2RB, TE, 2FLEX, K, DST</strong></div>
+      <div class="stat-row"><span>IR slots</span><strong>3</strong></div>
+      <div class="stat-row"><span>Adds</span><strong>30 season · unlimited weekly</strong></div>
+      <div class="stat-row"><span>FAAB</span><strong>$100 · process ~4 AM ET Wednesday</strong></div>
+      <div class="stat-row"><span>Playoffs</span><strong>8 teams · Weeks 15-17</strong></div>
+      <div class="stat-row"><span>Trade deadline</span><strong>Nov 28, 2026</strong></div>
+      <div class="stat-row"><span>Keepers</span><strong>2 · one-year only</strong></div>
+    </div>
+    <div class="card">
+      <h3>Scoring highlights</h3>
+      <ul>
+        <li>0.5 points per reception</li>
+        <li>Passing: 25 yards/point, 6-point TDs, INT -2</li>
+        <li>Rushing / Receiving: 10 yards/point, 6-point TDs</li>
+        <li>Fumble lost -2 · Fractional and negative points on</li>
+        <li>Field goals = yards / 10</li>
+        <li>DST: sack 1, INT/FR/safety/block 2, TD 6</li>
+        <li>Points allowed: 0=10, 1-6=7, 7-13=4, 14-20=1, 21+=0 (no blowup penalty)</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    Built from project memory, Yahoo screenshots, and league bible as of Oct 21, 2026.<br>
+    Hosted via GitHub Pages.<br>
+    Fully offline. Open this file in any browser on phone or computer.<br>
+    To update: send new screenshots in chat and I’ll regenerate the file.
+  </footer>
+</div>
+
+<script>
+  // Tab switching
+  const tabs = document.querySelectorAll('.tab');
+  const sections = document.querySelectorAll('.section');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      sections.forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  // Standings search
+  const searchInput = document.getElementById('standingsSearch');
+  const tableRows = document.querySelectorAll('#standingsTable tbody tr');
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.toLowerCase();
+      tableRows.forEach(row => {
+        const team = row.dataset.team.toLowerCase();
+        row.style.display = team.includes(q) ? '' : 'none';
+      });
+    });
+  }
+
+  // Simple sortable table
+  document.querySelectorAll('#standingsTable th').forEach(th => {
+    th.addEventListener('click', () => {
+      const table = th.closest('table');
+      const tbody = table.querySelector('tbody');
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      const idx = Array.from(th.parentNode.children).indexOf(th);
+      const isNumeric = th.dataset.sort === 'rank' || th.dataset.sort === 'pf' || th.dataset.sort === 'faab';
+      const currentDir = th.dataset.dir || 'asc';
+      const newDir = currentDir === 'asc' ? 'desc' : 'asc';
+
+      rows.sort((a, b) => {
+        let aVal = a.children[idx].textContent.trim();
+        let bVal = b.children[idx].textContent.trim();
+        if (isNumeric) {
+          aVal = parseFloat(aVal.replace(/[^0-9.-]/g, '')) || 0;
+          bVal = parseFloat(bVal.replace(/[^0-9.-]/g, '')) || 0;
+          return newDir === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+        return newDir === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      });
+
+      // Reset directions
+      th.parentNode.querySelectorAll('th').forEach(h => h.dataset.dir = '');
+      th.dataset.dir = newDir;
+
+      rows.forEach(row => tbody.appendChild(row));
+    });
+  });
+</script>
+</body>
+</html>
